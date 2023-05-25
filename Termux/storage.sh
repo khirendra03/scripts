@@ -1,34 +1,46 @@
 #!/bin/env bash
 ## storage info
 ## some devices might be different, specify on your own
+
+# Internal and external storage paths
 internal=/storage/emulated/0/Android/data
 external=/storage/D639-79B5 # your external card's name
+
+# Temporary file to store output
 ftmp=$HOME/.scripts/util_data/data.tmp
+
+# Gather storage information using 'df -h' command and redirect output to $ftmp file
 df -h 2>/dev/null > $ftmp
 
+# Function to extract specific columns from the internal storage information
 scrp(){
   grep $internal $ftmp | awk "{print \$$1}"
 }
+
+# Function to extract specific columns from the external storage information
 scrpX(){
   grep $external $ftmp | awk "{print \$$1}"
 }
 
 ## internal info
-Fsys=$(scrp 1)
-Size=$(scrp 2)
-Used=$(scrp 3)
-Avai=$(scrp 4)
-Perc=$(scrp 5)
-Moun=$(scrp 6)
+# Obtain internal storage information using the 'scrp' function and assign to variables
+Fsys=$(scrp 1)    # Filesystem
+Size=$(scrp 2)    # Total size
+Used=$(scrp 3)    # Used space
+Avai=$(scrp 4)    # Available space
+Perc=$(scrp 5)    # Usage percentage
+Moun=$(scrp 6)    # Mount point
 
 # external info
-FsysX=$(scrpX 1)
-SizeX=$(scrpX 2)
-UsedX=$(scrpX 3)
-AvaiX=$(scrpX 4)
-PercX=$(scrpX 5)
-MounX=$(scrpX 6)
+# Obtain external storage information using the 'scrpX' function and assign to variables
+FsysX=$(scrpX 1)  # Filesystem
+SizeX=$(scrpX 2)  # Total size
+UsedX=$(scrpX 3)  # Used space
+AvaiX=$(scrpX 4)  # Available space
+PercX=$(scrpX 5)  # Usage percentage
+MounX=$(scrpX 6)  # Mount point
 
+# Formatted string containing internal storage information
 InAll="
 Internal Storage
 ================
@@ -39,6 +51,7 @@ Available  : ${Avai}B
 Mounted on : $Moun
 "
 
+# Formatted string containing external storage information
 ExAll="
 External Storage
 ================
@@ -49,25 +62,28 @@ Available  : ${AvaiX}B
 Mounted on : $MounX
 "
 
+# Function to generate a formatted string for displaying storage usage information
 fetch_info(){
   echo -e "${1}B / ${2}B ($3)"
 }
 
+# Store the storage usage information for internal and external storage into $ftmp file
 data="
 inter $(fetch_info $Used $Size $Perc)
 exter $(fetch_info $UsedX $SizeX $PercX)
 " &> $ftmp
 
+# Check the value of the first command-line argument to determine the desired output
 if [[ "$1" == "-a" ]]; then
-  echo "$data"
+  echo "$data"   # Print both internal and external storage usage information
 elif [[ "$1" == "-i" ]]; then
-  fetch_info $Used $Size $Perc
+  fetch_info $Used $Size $Perc    # Print internal storage usage information
 elif [[ "$1" == "-e" ]]; then
-  fetch_info $UsedX $SizeX $PercX
+  fetch_info $UsedX $SizeX $PercX  # Print external storage usage information
 elif [[ "$1" == "-I" ]]; then
-  echo -e "$InAll"
+  echo -e "$InAll"   # Print full internal storage information
 elif [[ "$1" == "-E" ]]; then
-  echo -e "$ExAll"
+  echo -e "$ExAll"   # Print full external storage information
 else
   {
     echo -e "USAGE: ./storage.sh -[i|e|I|E]";
